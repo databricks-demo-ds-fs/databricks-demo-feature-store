@@ -174,7 +174,7 @@ def feature_pipeline(
         run_command(
             notebook_path=notebook_path,
             timeout_seconds=0,  # no timeout configured
-            **notebook_parameters
+            arguments=notebook_parameters
         )
         success = True
         print("🎉 Execution completed successfully!")

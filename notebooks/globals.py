@@ -21,9 +21,6 @@ DATABRICKS_CREDENTIALS = {
         "prod_med_pag": {
             "HOST": "https://adb-8667311077316568.8.azuredatabricks.net/",
         },
-        "prod_riesgo": {
-            "HOST": "https://adb-1737426991273002.2.azuredatabricks.net/",
-        },
     },
     "dev": {
         "dev_bnca_pers": {
@@ -31,9 +28,6 @@ DATABRICKS_CREDENTIALS = {
         },
         "dev_med_pag": {
             "HOST": "https://adb-8667311077316568.8.azuredatabricks.net/",
-        },
-        "dev_riesgo": {
-            "HOST": "https://adb-1737426991273002.2.azuredatabricks.net/",
         },
     },
 }
