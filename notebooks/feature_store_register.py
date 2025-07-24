@@ -620,7 +620,7 @@ if __name__ == "__main__":
     jobs_params = {}
     for key in databricks_credentials.keys():
         job_params = get_job_params(
-            job_name="feature-store" if environment=="prod" else f"[dev {user}] feature-store",
+            job_name="demo-feature-store" if environment=="prod" else f"[dev {user}] demo-feature-store",
             stage_tag="feature",
             environment=environment,
             DATABRICKS_HOST=databricks_credentials[key]["HOST"],
