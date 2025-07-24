@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feature-store"
+version = "0.1.0"
+description = "Your project description"
+authors = [
+    {name = "Sergio Veliz", email = "sveliza@bolivariano.com"},
+]
+requires-python = ">=3.8"
+dynamic = ["dependencies"]
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = [
+    "src", 
+    "config", "config.dev", "config.staging", "config.prod", 
+    "scripts", "scripts.documenters", "scripts.helpers",
+    "notebooks", "notebooks.development", "notebooks.production"
+]
+exclude = ["tests"]
+
+[project.scripts]
+project = "project.__main__:main"
+
+[project.optional-dependencies]
+docs = [
+    "docutils<0.18.0",
+    "sphinx~=3.4.3",
+    "sphinx_rtd_theme==0.5.1",
+    "nbsphinx==0.8.1",
+    "sphinx-autodoc-typehints==1.11.1",
+    "sphinx_copybutton==0.3.1",
+    "ipykernel>=5.3, <7.0",
+    "myst-parser~=0.17.2",
+]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
