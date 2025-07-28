@@ -1,0 +1,86 @@
+# This is a Databricks asset bundle definition for demo-feature-store.
+# The Databricks extension requires databricks.yml configuration file.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+
+global_vars: &global_vars
+  user_name: admin-mail@domain.com
+
+bundle:
+  name: demo-feature-store
+
+variables:
+  env: 
+    description: Variable to indicate wich folder in conf we will read.
+    default: dev # dev, staging, prod
+  run_as_user:
+    description: mail of the user who will be run_as and the tokens' owner.
+    default: "ejemplo@domain.com"
+
+include:
+  # Resources folder contains ML artifact resources for the ML project that defines model and experiment
+  # And workflows resources for the ML project including model training -> validation -> deployment,
+  # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
+  - config/dev/job_resources/*.yml
+  - config/dev/job_resources/notebooks/*.yml
+  - config/staging/job_resources/*.yml
+  - config/prod/job_resources/*.yml
+  - config/prod/job_resources/notebooks/*.yml
+  # TODO: uncomment once monitoring inference table has been created
+  # - ./job_resources/monitoring-resource.yml
+
+targets:
+  dev_bnca_pers:
+    mode: development
+    workspace:
+      host: https://adb-xxxxxxxxxxxxxxx.1.azuredatabricks.net/
+      root_path: ~/Workspace/Shared/databricks-demo-feature-store/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: admin-mail@domain.com
+        level: CAN_MANAGE
+    run_as:
+      user_name: admin-mail@domain.com
+    variables:
+      env: dev # dev, staging, prod
+      run_as_user: admin-mail@domain.com
+
+  dev_med_pag:
+    mode: development
+    workspace:
+      host: https://adb-xxxxxxxxxxxxxxx.2.azuredatabricks.net/
+      root_path: ~/Workspace/Shared/databricks-demo-feature-store/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: admin-mail@domain.com
+        level: CAN_MANAGE
+    run_as:
+      user_name: admin-mail@domain.com
+    variables:
+      env: dev # dev, staging, prod
+      run_as_user: admin-mail@domain.com
+
+  prod_bnca_pers:
+    mode: production
+    workspace:
+      host: https://adb-xxxxxxxxxxxxxxx.1.azuredatabricks.net/
+      root_path: /Workspace/Shared/databricks-demo-feature-store/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: admin-mail@domain.com
+        level: CAN_MANAGE
+    run_as:
+      user_name: admin-mail@domain.com
+    variables:
+      env: prod # dev, staging, prod
+      run_as_user: admin-mail@domain.com
+
+  prod_med_pag:
+    mode: production
+    workspace:
+      host: https://adb-xxxxxxxxxxxxxxx.2.azuredatabricks.net/
+      root_path: /Workspace/Shared/databricks-demo-feature-store/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: admin-mail@domain.com
+        level: CAN_MANAGE
+    run_as:
+      user_name: admin-mail@domain.com
+    variables:
+      env: prod # dev, staging, prod
+      run_as_user: admin-mail@domain.com
