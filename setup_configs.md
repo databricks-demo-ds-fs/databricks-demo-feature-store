@@ -6,7 +6,7 @@ This guide outlines the specific files and sections you need to modify to config
 
 - Two Databricks workspaces (one for bncapers, one for medpag workflows)
 - Admin access to both workspaces for secret management
-- Source tables available in `demo_db` database or equivalent
+- Source tables available in `demo_db` database or equivalent. [Execute notebook](notebooks/dummy_data_generation.py) to generate it.
 
 ---
 
