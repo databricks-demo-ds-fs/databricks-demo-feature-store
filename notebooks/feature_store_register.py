@@ -603,6 +603,8 @@ if __name__ == "__main__":
         raise ValueError("`env` key not found in notebook params")
     if this_job_target is None:
         raise ValueError("`target` key not found in notebook params")
+
+    job_name_to_search = "demo-feature-store"
     
     databricks_credentials = DATABRICKS_CREDENTIALS[environment]
     pop_response = databricks_credentials.pop(this_job_target, None)
@@ -620,7 +622,7 @@ if __name__ == "__main__":
     jobs_params = {}
     for key in databricks_credentials.keys():
         job_params = get_job_params(
-            job_name="demo-feature-store" if environment=="prod" else f"[dev {user}] demo-feature-store",
+            job_name=job_name_to_search if environment=="prod" else f"[dev {user}] {job_name_to_search}",
             stage_tag="feature",
             environment=environment,
             DATABRICKS_HOST=databricks_credentials[key]["HOST"],
@@ -628,6 +630,10 @@ if __name__ == "__main__":
         )
         print(f"{key}: ", end="")
         pprint(job_params)
+
+        if not job_params:
+            print(f"[WARNING] No job found for target {key}. Skipping...")
+            continue
         
         jobs_params[key] = {}
         jobs_params[key]["JOB_ID"] = job_params["job_id"]
@@ -641,9 +647,13 @@ if __name__ == "__main__":
                     and (True if is_testing else ("test" not in task_key))
                 )
         }
-    
-    errors = main(databricks_credentials, jobs_params)
-    
+
+    if len(jobs_params) == 0:
+        print("[WARNING] No jobs found to process. Exiting...")
+        errors = {}
+    else:
+        errors = main(databricks_credentials, jobs_params)
+
     if errors:
         message =  "\t- " + "\n\t- ".join([
             f"job for target {target} finished with the following tasks status:" + \
