@@ -1,0 +1,104 @@
+_cluster_basis_conf:  &_cluster_basis_conf
+  spark_version: 14.3.x-cpu-ml-scala2.12
+  runtime_engine: STANDARD
+  num_workers: 0
+  custom_tags:
+      ResourceClass: SingleNode
+  spark_conf:
+    spark.databricks.cluster.profile: singleNode
+    spark.master: local[*, 4]
+    spark.hadoop.javax.jdo.option.ConnectionDriverName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    spark.hadoop.javax.jdo.option.ConnectionURL: jdbc:sqlserver://bbcompartidoprodexternalmetastore.database.windows.net:1433;database=hivemetastore
+    spark.databricks.delta.preview.enabled: "true"
+    spark.hadoop.javax.jdo.option.ConnectionUserName: "{{secrets/ScopeKeyVaultProd/sqlusuariomstore}}"
+    datanucleus.fixedDatastore: "false"
+    spark.hadoop.javax.jdo.option.ConnectionPassword: "{{secrets/ScopeKeyVaultProd/sqlpasswdmstore}}"
+    hive.metastore.schema.verification.record.version: "false"
+    datanucleus.autoCreateSchema: "true"
+    spark.sql.hive.metastore.jars: builtin
+    hive.metastore.schema.verification: "false"
+    spark.sql.hive.metastore.version: 2.3.9
+  autotermination_minutes: 0
+
+_feature_clusters: &_feature_clusters
+  job_clusters: 
+    - job_cluster_key: fs_demo_Dadsv5_32_deploy
+      new_cluster:
+        node_type_id: Standard_D16s_v5
+        <<: *_cluster_basis_conf
+    - job_cluster_key: fs_credit_behavior_Dsv5_32_deploy
+      new_cluster:
+        node_type_id: Standard_D16s_v5
+        <<: *_cluster_basis_conf
+    - job_cluster_key: fs_transactional_Dsv5_16_deploy
+      new_cluster:
+        node_type_id: Standard_D16s_v5
+        <<: *_cluster_basis_conf
+    - job_cluster_key: fs_registry_Dsv3_8_deploy
+      new_cluster:
+        node_type_id: Standard_D8s_v3
+        <<: *_cluster_basis_conf
+
+_basis_job_info: &_basis_job_info
+  tags:
+    stage: feature
+    environment: ${var.env}
+  email_notifications:
+    on_failure:
+      - admin-mail@domain.com
+  max_concurrent_runs: 1
+  <<: *_feature_clusters
+
+_tasks_bnca_pers: &_tasks_bnca_pers
+  - task_key: fs_cus_demographic
+    job_cluster_key: fs_demo_Dadsv5_32_deploy
+    notebook_task:
+      notebook_path: ../../../notebooks/notebooks_orchestator.py
+      base_parameters:
+        env: ${var.env}
+        fs_notebook: "fs_cus_demographic"
+        start_date: "2023-01-01"
+        end_date: "actual"
+        force_overwrite: "False"
+        overwriteSchema: "False"
+    # libraries:
+    #   - whl: ../../../dist/*.whl
+  - task_key: fs_cus_credit_risk
+    job_cluster_key: fs_credit_behavior_Dsv5_32_deploy
+    depends_on: 
+      - task_key: fs_cus_demographic
+    run_if: ALL_DONE
+    notebook_task:
+      notebook_path: ../../../notebooks/notebooks_orchestator.py
+      base_parameters:
+        env: ${var.env}
+        fs_notebook: "fs_cus_credit_risk"
+        start_date: "2019-01-01"
+        end_date: "actual"
+        force_overwrite: "False"
+        overwriteSchema: "False"
+        # ignore: True
+    # libraries:
+    #   - whl: ../../../dist/*.whl
+
+  - task_key: feature_registry
+    job_cluster_key: fs_registry_Dsv3_8_deploy
+    depends_on: 
+      - task_key: fs_cus_credit_risk
+    run_if: ALL_DONE
+    notebook_task:
+      notebook_path: ../../../notebooks/feature_store_register.py
+      base_parameters:
+        env: ${var.env}
+        target: ${bundle.target}
+        run_as_user: ${var.run_as_user}
+        # testing: "True"
+
+targets:
+  prod_bnca_pers:
+    resources:
+      jobs:
+        demo-feature-store-bncapers-notebooks:
+          name: demo-feature-store
+          <<: *_basis_job_info
+          tasks: *_tasks_bnca_pers
